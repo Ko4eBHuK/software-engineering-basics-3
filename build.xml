@@ -1,0 +1,101 @@
+<project name="labTpu" default="build">
+	<!-- использование файла свойств -->	
+	<property file="build.properties"/>
+
+	<!-- компиляция исходных кодов проекта -->
+	<target name="compile" description="Compile *.java files">
+		<mkdir dir="${bin}"/>
+		<javac destdir="${bin}" includeantruntime="false" srcdir="${src}"/>
+	</target>
+
+	<!-- компиляция исходных кодов проекта и их упаковка в исполняемый jar-архив -->
+	<target name="build" description="generate .jar file" depends="compile">
+		<mkdir dir="${targetdir}"/>
+		<jar jarfile="${targetdir}${target}" basedir="${bin}">
+			<manifest>
+				<attribute name="main-Class" value="${mainClass}"/>
+				<attribute name="package-Version" value="1.0"/>
+			</manifest>
+		</jar>
+		<manifest file="MANIFEST.MF">
+			<attribute name="main-Class" value="${mainClass}"/>
+			<attribute name="package-Version" value="1.0"/>
+		</manifest>
+	</target>
+
+	<!-- удаление скомпилированных классов проекта и всех временных файлов -->
+	<target name="clean" description="cleaning binaries if created">
+		<delete dir="${bin}"/>
+		<delete dir="${targetdir}"/>
+		<delete dir="${temp}"/>
+		<delete dir="${altsrc}"/>
+		<delete dir="${altbin}"/>
+		<delete file="MANIFEST.MF"/>
+	</target>
+
+	<!-- запуск junit-тестов проекта -->
+	<target name="test" description="compile and run unit tests" depends="build">
+		<javac srcdir="${testSrc}" destdir="${targetdir}" includeantruntime="false">
+			<classpath>
+				<pathelement location="${lib}${junit4}"/>
+				<pathelement location="${lib}${hamcrest}"/>
+				<pathelement location="${targetdir}${target}"/>
+			</classpath>
+		</javac>
+		<junit printsummary="on" fork="true">
+			<classpath>
+				<pathelement location="${lib}${junit4}"/>
+				<pathelement location="${lib}${hamcrest}"/>
+				<pathelement location="${targetdir}${target}"/>
+				<pathelement location="${targetdir}"/>
+			</classpath>
+			<formatter type="brief" usefile="false"/>
+			<batchtest>
+				<fileset dir="${testSrc}"/>
+			</batchtest>
+		</junit>
+	</target>
+
+	<!-- воспроизведение музыки по завершению сборки -->
+	<target name="music" depends="build">
+		<sound>
+			<success source="${musicS}" duration="10000"/>
+		</sound>
+		<echo message="Music done"/>
+	</target>
+
+	<!-- создаёт альтернативную версию программы с измененными именами переменных и классов -->
+ 	<target name="alt" description="alternative compilation">
+		<mkdir dir="${altsrc}"/>
+		<mkdir dir="${altsrc}${altpackage}"/>
+		<mkdir dir="${altbin}"/>
+
+		<copy todir="${altsrc}${altpackage}">
+			<fileset dir="${src}${package}">
+				<include name="*.java"/>
+			</fileset>
+		</copy>
+		
+		<replaceregexp match="package ${package}" replace="package ${altpackage}">
+			<fileset dir="${altsrc}${altpackage}"/>
+		</replaceregexp>
+		
+		<replace dir="${altsrc}${altpackage}" includes="**/*.java" propertyFile="build.properties">
+			<replacefilter token="${classToReplace}" property="classReplaced"/>
+			<replacefilter token="${varToReplace}" property="varReplaced"/>
+		</replace>
+		
+		<move file="${altsrc}${altpackage}/${classToReplace}.java" tofile="${altsrc}${altpackage}/${classReplaced}.java"/>
+		
+		<antcall target="build" inheritRefs="true">
+			<param name="src" value="${altsrc}"/>
+			<param name="package" value="${altpackage}"/>
+			<param name="target" value="alt${target}"/>
+			<param name="mainClass" value="${classReplaced}"/>
+		</antcall>
+	</target>
+
+</project>
+
+
+
