@@ -1,21 +1,26 @@
-import labTpu.beans.*;
+import okladnikov.bool.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class Tests {
 	@Test
 	public void testInside() {
-		InputData testInputData = new InputData(4, 1, 0.5);
-		DotChecker testHitChecker = new DotChecker();
-		DotsData testDostsData = testHitChecker.checkDot(testInputData);
-		assertTrue("checking point (0.5; 1) via R = 4", testDostsData.isOutcome());
+		ShotData shot = new ShotData(1, 1, 4);
+		ShotChecker.checkShot(shot);
+		assertTrue("checking point (1; 1) via R = 4", shot.getResult());
+	}
+
+	@Test
+	public void testInside() {
+		ShotData shot = new ShotData(1, 1, 4);
+		ShotChecker.checkShot(shot);
+		assertTrue("checking point (1; 1) via R = 4", shot.getResult());
 	}
 
 	@Test
 	public void testOutside() {
-		InputData testInputData = new InputData(2, -0.5, -1);
-		DotChecker testHitChecker = new DotChecker();
-		DotsData testDostsData = testHitChecker.checkDot(testInputData);
-		assertFalse("checking point (-1; -0.5) via R = 2", testDostsData.isOutcome());
+		ShotData shot = new ShotData(-1, -1, 2);
+		ShotChecker.checkShot(shot);
+		assertFalse("checking point (-1; --1) via R = 2", shot.getResult());
 	}
 }
